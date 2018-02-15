@@ -82,13 +82,15 @@ Fucntion Test-Services{ #todo name
 		#FQDN to IP
 		#Certificate (Throw warning if cert going to expire in < 3 months)
 		#Certificate valid
+		#Reverse Proxy Authentication test
 		#Functions
 			#Addressbook
 				#Addressbook Query
 			#AutoDiscover
 				#Valid XML
 				#Check an endpoint
-			#CertProv service
+			#CertProv service  https://sfbfepool01.customer.vic.gov.au:443/certprov/certprovisioningservice.svc 
+			
 			#Dialin
 			#CSCP
 			
@@ -99,6 +101,31 @@ Fucntion Test-Services{ #todo name
 	#OfficeWebApps Server
 
 	}
+
+
+Function Test-CsAutoDiscover {
+	PARAM ([String]$s4bAutoDiscover)
+	
+	 Write-Log -component "Test-CsAutoDiscover" -Message "Testing Autodiscover" -severity 2
+	 Write-Log -component "Test-CsAutoDiscover" -Message "User defined url is $s4bAutodiscover" -severity 1
+	try{
+		Write-Log -component "Test-CsAutoDiscover" -Message "Invoking webrequest" -severity 1
+		$data = Invoke-WebRequest -Uri $s4bAutodiscover -Method GET -ContentType "application/json" -UseBasicParsing
+		 Write-Log -component "Test-CsAutoDiscover" -Message "got data, parsing" -severity 1
+ 		$baseurl = (($data.content | ConvertFrom-JSON)._links.user.href).split("/")[0..2] -join "/"
+		 Write-Log -component "Test-CsAutoDiscover" -Message "Found BaseURL $baseurl" -severity 1
+ 		$oauthurl = ($data.content | convertfrom-json)._links.user.href
+		 Write-Log -component "Test-CsAutoDiscover" -Message "Found OauthURL $oauthurl" -severity 1
+		 Write-Log -component "Test-CsAutoDiscover" -Message "AutoDiscover test passed, Found UCWA details" -severity 2
+		Write-Output $true
+	}catch{
+		Write-Log -component "Config" -Message "Something went wrong getting to the AutoDiscover URL or the data was bad" -severity 3
+		Write-Log -component "Config" -Message "Setting button red" -severity 1
+		#todo better Error handing / reporting
+		Throw "Something went wrong getting to the AutoDiscover URL or the data was bad"
+	}
+
+}
 
 
 
